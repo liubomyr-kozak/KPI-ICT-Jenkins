@@ -2,40 +2,21 @@ pipeline {
     agent any
 
     stages {
-        stage('Install Dependencies') {
+        stage('Build') {
             steps {
                 sh 'npm install'
             }
         }
 
-        stage('Build') {
+        stage('Run Teacher Telegram Bot') {
             steps {
-                sh 'npm run build'
+                sh 'npm run start:teacher &'
             }
         }
 
-        stage('Docker Build') {
+        stage('Run Student Telegram Bot') {
             steps {
-                script {
-                    docker.build("my-node-app:latest")
-                }
-            }
-        }
-
-        stage('Docker Run') {
-            steps {
-                script {
-                    docker.image("my-node-app:latest").run("-p 9191:3000")
-                }
-            }
-        }
-    }
-
-    post {
-        always {
-            script {
-                docker.image("my-node-app:latest").stop()
-                docker.image("my-node-app:latest").remove()
+                sh 'npm run start:student &'
             }
         }
     }
