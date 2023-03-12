@@ -1,5 +1,5 @@
 pipeline {
-    agent {
+   agent {
       docker {
          image 'hello-world'
          args '-p 9191:80'
@@ -10,6 +10,11 @@ pipeline {
          steps {
             sh 'echo "Hello World!"'
          }
+      }
+   }
+   post {
+      always {
+         sh 'docker stop $(docker ps -q -f "ancestor=hello-world")'
       }
    }
 }
