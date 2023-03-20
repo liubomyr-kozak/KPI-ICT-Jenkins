@@ -11,3 +11,19 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+
+  student-bot:
+    build:
+      context: .
+      dockerfile: DockerfileStudent
+    image: student-bot
+    container_name: student-bot-container
+    restart: always
+
+  teacher-bot:
+    build:
+      context: .
+      dockerfile: DockerfileTeacher
+    image: teacher-bot
+    container_name: teacher-bot-container
+    restart: always
