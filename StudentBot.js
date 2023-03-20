@@ -5,7 +5,6 @@ const AMPQConnection = require('./AMPQConnection')
 const bot = new Telegraf(process.env.STUDENT_BOT_TOKEN);
 const users = {};
 
-
 function checkQueue() {
   AMPQConnection.consume(function (msg) {
     if (msg.content.includes('Починаю лекцію...')) {
