@@ -8,6 +8,8 @@
   },
   "dependencies": {
     "amqplib": "^0.10.0",
-    "telegraf": "^4.0.0"
+    "dotenv": "^16.0.3",
+    "telegraf": "^4.0.0",
+    "amqp-connection-manager": "^3.2.0"
   }
 }

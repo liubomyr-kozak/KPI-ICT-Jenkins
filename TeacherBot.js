@@ -1,39 +1,78 @@
-const Telegraf = require('telegraf');
-const amqp = require('amqplib');
+require('dotenv').config();
+const { Telegraf, Markup } = require('telegraf');
+const AMPQConnection = require('./AMPQConnection');
 
 const bot = new Telegraf(process.env.TEACHER_BOT_TOKEN);
+const studentBot = new Telegraf(process.env.STUDENT_BOT_TOKEN);
 
-bot.start((ctx) => ctx.reply('Welcome!'));
+bot.action('BOT_start_lecture', ctx => {
+  const senderId = ctx.update.callback_query.message.from.id;
+  const sender = ctx.update.callback_query.message.from;
 
-bot.on('text', (ctx) => {
-  const message = ctx.update.message.text;
-  const senderId = ctx.update.message.from.id;
-  if (message.includes('Починаю лекцію...')) {
-    // Підключаємося до RabbitMQ
-    amqp.connect(process.env.RABBITMQ_URL).then(function(conn) {
-      // Створюємо канал
-      return conn.createChannel().then(function(ch) {
-        // Оголошуємо чергу, яку ми будемо відправляти повідомлення
-        const queueName = 'lecture_queue';
-        const queueOptions = { durable: true };
-        ch.assertQueue(queueName, queueOptions);
+  const messageToSend = {
+    content: 'Починаю лекцію...',
+    senderId: senderId,
+    sender: sender,
+  };
 
-        // Формуємо повідомлення, яке будемо відправляти до черги
-        const messageToSend = {
-          text: message,
-          senderId: senderId,
-        };
+  AMPQConnection.sendToQueue(messageToSend);
 
-        // Відправляємо повідомлення до черги
-        const messageString = JSON.stringify(messageToSend);
-        ch.sendToQueue(queueName, Buffer.from(messageString), { persistent: true });
-        console.log("Sent message to RabbitMQ: %s", messageString);
-
-        // Закриваємо канал та з'єднання з RabbitMQ
-        return ch.close();
-      }).finally(function() { conn.close(); });
-    }).catch(console.warn);
-  }
+  ctx.reply('Відправлено повідомлення про початок лекції')
 });
+
+
+let gueue = [];
+
+function checkQueue(teacherData) {
+  AMPQConnection.consume(function (msg) {
+    gueue.push(msg)
+    
+    console.log(":: -> msg", msg);
+  });
+
+  setInterval(() => {
+    const oldQueue = [...gueue];
+    gueue = [];
+
+    oldQueue.forEach((msg) => {
+      if (msg.content.includes('Студетнт присутній')) {
+        const studentName = msg.sender.first_name;
+
+        bot.telegram.getMe().then(() => {
+          const teacherMessage = 'Вітає з почаком лекції';
+
+          bot.telegram.sendMessage(teacherData.id, `Студент ${studentName} в мережі`);
+          studentBot.telegram.sendMessage(msg.senderId, `Викладач ${teacherData.first_name} почав віддалену пару і ${teacherMessage}`);
+        });
+      }
+    })
+
+  }, 1000);
+
+
+  // AMPQConnection.get((message) => {
+  //   if (message.content.includes('Студетнт присутній')) {
+  //     const studentName = message.sender.first_name;
+  //
+  //     bot.telegram.getMe().then(() => {
+  //       const teacherMessage = 'Вітає з почаком лекції';
+  //
+  //       bot.telegram.sendMessage(teacherData.id, `Студент ${studentName} в мережі`);
+  //       studentBot.telegram.sendMessage(message.senderId, `Викладач ${teacherData.first_name} почав віддалену пару і ${teacherMessage}`);
+  //     });
+  //   }
+  // })
+}
+
+bot.start((ctx) => {
+  const message = 'Вітаю! Використовуйте кнопку нижче, щоб відправити повідомлення "Починаю лекцію..."';
+  const triggerButton = Markup.button.callback('Починаю лекцію...', 'BOT_start_lecture');
+  const keyboard = Markup.inlineKeyboard([triggerButton]).resize();
+
+  const teacher = ctx.update.message.from;
+  checkQueue(teacher);
+
+  return ctx.reply(message, keyboard);
+})
 
 bot.launch();

@@ -1,52 +1,55 @@
-const Telegraf = require('telegraf');
-const amqp = require('amqplib');
+require('dotenv').config();
+const { Telegraf } = require('telegraf');
+const AMPQConnection = require('./AMPQConnection')
 
-const bot = new Telegraf(process.env.BOT_TOKEN);
+const bot = new Telegraf(process.env.STUDENT_BOT_TOKEN);
+const users = {};
 
-// Підключаємося до RabbitMQ
-amqp.connect(process.env.RABBITMQ_URL).then(function(conn) {
-  // Створюємо канал
-  return conn.createChannel().then(function(ch) {
-    // Оголошуємо чергу, з якої ми будемо отримувати повідомлення
-    const queueName = 'lecture_queue';
-    const queueOptions = { durable: true };
-    ch.assertQueue(queueName, queueOptions);
 
-    // Встановлюємо таймер на 15 хвилин
-    const interval = 15 * 60 * 1000;
+function checkQueue() {
+  AMPQConnection.consume(function (msg) {
+    if (msg.content.includes('Починаю лекцію...')) {
+      Object.keys(users).forEach(function (key) {
+        const user = users[key];
+        const userId = user.id;
 
-    // Функція, яка відправляє повідомлення користувачу Telegram
-    function sendTelegramMessage(message) {
-      bot.telegram.sendMessage(process.env.USER_ID, message);
+        bot.telegram.sendMessage(userId, 'Викладач чекає інформацію про присутність студентів', {
+          reply_markup: {
+            inline_keyboard: [[
+              {
+                text: 'Повідомити про присутність', callback_data: 'BOT_BTN_notifyStudentIsHere'
+              }
+            ]]
+          }
+        });
+      })
     }
+  });
+}
 
-    // Функція, яка перевіряє наявність повідомлень у черзі та відправляє їх до користувача Telegram
-    function checkQueue() {
-      ch.get(queueName, { noAck: true }).then(function(message) {
-        if (message !== null) {
-          const messageContent = JSON.parse(message.content.toString());
-          const senderId = messageContent.senderId;
-          const text = messageContent.text;
-          const lectureStarted = new Date().toLocaleTimeString();
+bot.on('callback_query', (ctx) => {
+  const data = ctx.update.callback_query.data;
 
-          const telegramMessage = `Викладач почав віддалену пару із ${lectureStarted}: ${text} ${senderId}`;
+  if (data === 'BOT_BTN_notifyStudentIsHere') {
+    const messageContent = {
+      senderId: ctx.from.id,
+      sender: ctx.from,
+      content: 'Студетнт присутній'
+    };
 
-          sendTelegramMessage(telegramMessage);
-        }
-      });
-    }
+    AMPQConnection.sendToQueue(messageContent);
 
-    // Перевіряємо чергу при запуску бота
-    checkQueue();
+    ctx.reply('Ваш запит успішно надіслано!');
+  }
+});
 
-    // Перевіряємо чергу кожні 15 хвилин
-    setInterval(checkQueue, interval);
+bot.start((ctx) => {
 
-    // Закриваємо канал та з'єднання з RabbitMQ
-    return ch.close();
-  }).finally(function() { conn.close(); });
-}).catch(console.warn);
+  if (!users[ctx.message.from.id]) {
+    users[ctx.message.from.id] = ctx.message.from;
+  }
 
-bot.start((ctx) => ctx.reply('Welcome!'));
-
+  checkQueue();
+  ctx.reply('Привіт Студент! ' + ctx.message.from.first_name)
+});
 bot.launch();
