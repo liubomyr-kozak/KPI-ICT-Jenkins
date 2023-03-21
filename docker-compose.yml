@@ -3,16 +3,15 @@ services:
   rabbitmq:
     image: rabbitmq:3.8.25-management-alpine
     container_name: rabbitmq
-#    ports:
-#      - "5672:5672"
-#      - "15672:15672"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
     volumes:
       - ./rabbitmq/data:/var/lib/rabbitmq
       - ./rabbitmq/logs:/var/log/rabbitmq
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
-    network_mode: host
 
   student-bot:
     build:
@@ -21,7 +20,8 @@ services:
     image: student-bot
     container_name: student-bot-container
     restart: always
-    network_mode: host
+    environment:
+      - RABBITMQ_PROD_URL=rabbitmq
 
   teacher-bot:
     build:
@@ -30,4 +30,5 @@ services:
     image: teacher-bot
     container_name: teacher-bot-container
     restart: always
-    network_mode: host
+    environment:
+      - RABBITMQ_PROD_URL=rabbitmq

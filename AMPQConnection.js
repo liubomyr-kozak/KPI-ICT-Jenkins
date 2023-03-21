@@ -1,6 +1,6 @@
 require('dotenv').config();
 const amqp = require("amqp-connection-manager");
-const connection = amqp.connect([process.env.RABBITMQ_URL]);
+const connection = amqp.connect([process.env.RABBITMQ_PROD_URL || process.env.RABBITMQ_URL]);
 
 
 function isValidJSON(str) {
