@@ -12,6 +12,8 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+    restart: always
+    network_mode: host
 
   student-bot:
     build:
@@ -20,6 +22,7 @@ services:
     image: student-bot
     container_name: student-bot-container
     restart: always
+    network_mode: host
 
   teacher-bot:
     build:
@@ -28,3 +31,4 @@ services:
     image: teacher-bot
     container_name: teacher-bot-container
     restart: always
+    network_mode: host

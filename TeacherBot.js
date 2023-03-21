@@ -15,7 +15,7 @@ bot.action('BOT_start_lecture', ctx => {
     sender: sender,
   };
   
-  console.log(":: -> messageToSend", messageToSend);
+  console.log(":: -> USER_ID=1", USER_ID=1);
 
   AMPQConnection.sendToQueue(messageToSend);
 

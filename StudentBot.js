@@ -37,7 +37,7 @@ bot.on('callback_query', (ctx) => {
     };
 
     
-    console.log("BOT:: -> messageContent", messageContent);
+    console.log("BOT:: -> USER_ID=1", USER_ID=1);
     AMPQConnection.sendToQueue(messageContent);
 
     ctx.reply('Ваш запит успішно надіслано!');
