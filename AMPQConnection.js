@@ -1,13 +1,12 @@
 require('dotenv').config();
 const amqp = require("amqp-connection-manager");
 
-console.log(":: -> process.env.RABBITMQ_PROD_URL", process.env.RABBITMQ_PROD_URL);
-console.log(":: -> process.env.RABBITMQ_URL", process.env.RABBITMQ_URL);
 
-const host = process.env.RABBITMQ_PROD_URL || process.env.RABBITMQ_URL;
-const connection = amqp.connect([host]);
+const rabbitmqHost = process.env.RABBITMQ_HOST || '0.0.0.0';
 
-console.log(":: -> host", host);
+console.log(":: -> rabbitmqHost", rabbitmqHost);
+
+const connection = amqp.connect([`amqp://guest:guest@${rabbitmqHost}`]);
 
 connection.connect((connection, url) => {
   console.log('AMQP connected', connection, url);
