@@ -15,8 +15,6 @@ bot.action('BOT_start_lecture', ctx => {
     sender: sender,
   };
   
-  console.log(":: -> USER_ID=1", USER_ID=1);
-
   AMPQConnection.sendToQueue(messageToSend);
 
   ctx.reply('Відправлено повідомлення про початок лекції')
@@ -49,21 +47,7 @@ function checkQueue(teacherData) {
       }
     })
 
-  }, 1000);
-
-
-  // AMPQConnection.get((message) => {
-  //   if (message.content.includes('Студетнт присутній')) {
-  //     const studentName = message.sender.first_name;
-  //
-  //     bot.telegram.getMe().then(() => {
-  //       const teacherMessage = 'Вітає з почаком лекції';
-  //
-  //       bot.telegram.sendMessage(teacherData.id, `Студент ${studentName} в мережі`);
-  //       studentBot.telegram.sendMessage(message.senderId, `Викладач ${teacherData.first_name} почав віддалену пару і ${teacherMessage}`);
-  //     });
-  //   }
-  // })
+  }, 60 * 1000);
 }
 
 bot.start((ctx) => {
@@ -75,7 +59,6 @@ bot.start((ctx) => {
   checkQueue(teacher);
 
   console.log("BOT:: checkQueue: start");
-
   console.log("BOT:: -> hello", ctx.message.from.first_name);
 
   return ctx.reply(message, keyboard);
