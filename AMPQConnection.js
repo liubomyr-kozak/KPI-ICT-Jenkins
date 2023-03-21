@@ -2,7 +2,7 @@ require('dotenv').config();
 const amqp = require("amqp-connection-manager");
 
 
-const rabbitmqHost = process.env.RABBITMQ_HOST || '0.0.0.0';
+const rabbitmqHost = process.env.RABBITMQ_PROD_URL || '0.0.0.0';
 
 console.log(":: -> rabbitmqHost", rabbitmqHost);
 
