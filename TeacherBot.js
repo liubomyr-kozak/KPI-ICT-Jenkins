@@ -14,6 +14,8 @@ bot.action('BOT_start_lecture', ctx => {
     senderId: senderId,
     sender: sender,
   };
+  
+  console.log(":: -> messageToSend", messageToSend);
 
   AMPQConnection.sendToQueue(messageToSend);
 
@@ -72,7 +74,13 @@ bot.start((ctx) => {
   const teacher = ctx.update.message.from;
   checkQueue(teacher);
 
+  console.log("BOT:: checkQueue: start");
+
+  console.log("BOT:: -> hello", ctx.message.from.first_name);
+
   return ctx.reply(message, keyboard);
 })
+
+console.log("BOT: launch");
 
 bot.launch();

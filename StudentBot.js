@@ -36,6 +36,8 @@ bot.on('callback_query', (ctx) => {
       content: 'Студетнт присутній'
     };
 
+    
+    console.log("BOT:: -> messageContent", messageContent);
     AMPQConnection.sendToQueue(messageContent);
 
     ctx.reply('Ваш запит успішно надіслано!');
@@ -48,7 +50,15 @@ bot.start((ctx) => {
     users[ctx.message.from.id] = ctx.message.from;
   }
 
+  console.log("BOT:: checkQueue: start");
+  
+  console.log("BOT:: -> hello", ctx.message.from.first_name);
+  
   checkQueue();
   ctx.reply('Привіт Студент! ' + ctx.message.from.first_name)
 });
+
+
+console.log("BOT: launch");
+
 bot.launch();
