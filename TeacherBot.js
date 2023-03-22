@@ -26,8 +26,6 @@ let gueue = [];
 function checkQueue(teacherData) {
   AMPQConnection.consume(function (msg) {
     gueue.push(msg)
-    
-    console.log(":: -> msg", msg);
   });
 
   setInterval(() => {
@@ -35,19 +33,23 @@ function checkQueue(teacherData) {
     gueue = [];
 
     oldQueue.forEach((msg) => {
-      if (msg.content.includes('Студетнт присутній')) {
-        const studentName = msg.sender.first_name;
+      const msgBody = JSON.parse(msg.content.toString());
+      console.log("checkQueue:: -> msgBody", msgBody);
+      if (msgBody.content.includes('Студетнт присутній')) {
+        const studentName = msgBody.sender.first_name;
+
+        AMPQConnection.ack(msg);
 
         bot.telegram.getMe().then(() => {
           const teacherMessage = 'Вітає з почаком лекції';
 
           bot.telegram.sendMessage(teacherData.id, `Студент ${studentName} в мережі`);
-          studentBot.telegram.sendMessage(msg.senderId, `Викладач ${teacherData.first_name} почав віддалену пару і ${teacherMessage}`);
+          studentBot.telegram.sendMessage(msgBody.senderId, `Викладач ${teacherData.first_name} почав віддалену пару і ${teacherMessage}`);
         });
       }
     })
 
-  }, 60 * 1000);
+  }, 3 * 60 * 1000);
 }
 
 bot.start((ctx) => {

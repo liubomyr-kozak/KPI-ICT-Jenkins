@@ -5,12 +5,16 @@ const AMPQConnection = require('./AMPQConnection')
 const bot = new Telegraf(process.env.STUDENT_BOT_TOKEN);
 const users = {};
 
-function checkQueue() {
+function consumeUpdates() {
   AMPQConnection.consume(function (msg) {
-    if (msg.content.includes('Починаю лекцію...')) {
+    const msgBody = JSON.parse(msg.content.toString());
+
+    if (msgBody.content.includes('Починаю лекцію...')) {
       Object.keys(users).forEach(function (key) {
         const user = users[key];
         const userId = user.id;
+
+        AMPQConnection.ack(msg);
 
         bot.telegram.sendMessage(userId, 'Викладач чекає інформацію про присутність студентів', {
           reply_markup: {
@@ -36,8 +40,7 @@ bot.on('callback_query', (ctx) => {
       content: 'Студетнт присутній'
     };
 
-    
-    console.log("BOT:: -> USER_ID=1", USER_ID=1);
+
     AMPQConnection.sendToQueue(messageContent);
 
     ctx.reply('Ваш запит успішно надіслано!');
@@ -51,10 +54,9 @@ bot.start((ctx) => {
   }
 
   console.log("BOT:: checkQueue: start");
-  
   console.log("BOT:: -> hello", ctx.message.from.first_name);
-  
-  checkQueue();
+
+  consumeUpdates();
   ctx.reply('Привіт Студент! ' + ctx.message.from.first_name)
 });
 
