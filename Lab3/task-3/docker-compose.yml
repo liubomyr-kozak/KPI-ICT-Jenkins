@@ -1,0 +1,22 @@
+version: '3.9'
+
+services:
+  server:
+    build: ./server
+    container_name: server
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+
+  website:
+    build: ./website
+    container_name: website
+    ports:
+      - "9000:80"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
